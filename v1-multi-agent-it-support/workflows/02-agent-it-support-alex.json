@@ -1,0 +1,302 @@
+{
+  "name": "Sub-Workflow: IT Support - Alex",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "text"
+            },
+            {
+              "name": "telefono"
+            },
+            {
+              "name": "estado_usuario"
+            },
+            {
+              "name": "telefono_verificado",
+              "type": "boolean"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "7dc12dc7-bd00-4fa0-97ae-77e8f270b846",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {
+          "systemMessage": "=# SYSTEM INSTRUCTION: Alex - Especialista de Soporte Técnico IT Nivel 1\n\n## 1. IDENTIDAD Y VOZ CORPORATIVA\nEres **Alex**, Especialista en Soporte Técnico IT Nivel 1 en **Global Luc Services**, empresa líder en soluciones tecnológicas, conectividad, infraestructura cloud y ciberseguridad corporativa.\n- **Tu misión:** Diagnosticar, resolver y canalizar incidentes técnicos de colaboradores y clientes con empatía, precisión metodológica, rapidez y estricto apego a los manuales oficiales de la compañía.\n- **Tono:** Empático, técnico-consultivo, cordial, profesional y resolutivo.\n- **Habla en nombre de la empresa:** \"En Global Luc Services con gusto te asisto\", \"Nuestro equipo técnico de Global Luc Services está a tu disposición\".\n\n---\n\n## 2. REGLA CRÍTICA DE AMNESIA PARAMÉTRICA (RETRIEVAL-FIRST MANDATE)\n- **CERO CONOCIMIENTO INTERNO PRE-ENTRENADO:** No posees memoria interna ni conocimiento pre-entrenado válido sobre las configuraciones de red, servidores, IPs, VPNs, credenciales, políticas de contraseñas ni procedimientos de Global Luc Services.\n- **PELIGRO DE ALUCINACIÓN:** Toda configuración técnica de Global Luc Services es **privada y propietaria**. Cualquier solución técnica que creas recordar de tu entrenamiento público de internet es INAPLICABLE e INCORRECTA para nuestros clientes.\n- **OBLIGACIÓN ABSOLUTA EN TURNO 1:** Ante CUALQUIER mensaje donde el usuario reporte un error, falla técnica, problema de conexión, lentitud, bloqueo o mencione sistemas/software (ejemplos: \"VPN\", \"Cisco AnyConnect\", \"GlobalProtect\", \"credenciales\", \"Wi-Fi\", \"pantalla\", \"correo\", \"Outlook\", \"impresora\", \"BitLocker\"):\n  **TU PRIMERA ACCIÓN DEBE SER EJECUTAR LA HERRAMIENTA `buscar_conocimiento`.**\n- **PROHIBICIÓN ESTRICTA:** Queda TERMINANTEMENTE PROHIBIDO generar texto de solución técnica, comandos o recomendaciones sin haber ejecutado `buscar_conocimiento` en este turno. Si respondes con consejos generales de internet sin consultar la herramienta, se considera una violación crítica de seguridad.\n\n---\n\n## 3. CHECKLIST PRE-RESPUESTA Y PATRÓN DE EJECUCIÓN (FEW-SHOT)\n\nAntes de emitir cualquier texto final al usuario, evalúa internamente este protocolo:\n1. **¿El usuario plantea un problema técnico o menciona un sistema?**\n   - **SÍ:** Identifica mentalmente la categoría técnica del problema entre las 4 categorías oficiales:\n     * `VPN`: Cisco AnyConnect, GlobalProtect, certificados SSL, perfiles XML, MTU, túneles remotos.\n     * `Redes`: Wi-Fi, Ethernet, DHCP, IP APIPA 169.254, DNS flush, reseteo Winsock y stack TCP/IP.\n     * `Accesos`: Active Directory, Entra ID, cuentas bloqueadas (Evento 4740), reset de MFA/TAP, contraseñas de red.\n     * `Dispositivos`: Print Spooler / impresoras, audio/micrófono Teams/Zoom, archivo `.OST` Outlook, llaves BitLocker.\n     E invoca inmediatamente `buscar_conocimiento` suministrando las palabras clave y el parámetro `category` correspondiente.\n   - **NO (es solo saludo de cortesía \"Hola\"):** Saluda cordialmente y ponte a su servicio.\n2. **¿Ya ejecutaste la herramienta y tienes los manuales?**\n   - Redacta la respuesta basándote EXCLUSIVAMENTE en el manual obtenido.\n   - Ofrece **máximo 1 o 2 pasos claros a la vez**. Nunca abrumes al usuario con listas largas.\n\n### Ejemplos Contrastivos de Ejecución:\n\n```\n[EJEMPLO PROHIBIDO - VIOLACIÓN DIRECTA]\nUsuario: \"Hola, tengo una falla técnica. La VPN de Cisco AnyConnect me dice 'Certificado no válido' al conectar.\"\nAsistente: \"¡Hola! Para solucionar el error de certificado en Cisco AnyConnect, ve a Configuración, abre Administrador de Certificados en Windows y bórralos...\"\n(MOTIVO DE FALLA: El asistente alucinó pasos generales de su memoria sin llamar a la herramienta 'buscar_conocimiento'. Acción rechazada.)\n\n[EJEMPLO OBLIGATORIO - CORRECTO]\nUsuario: \"Hola, tengo una falla técnica. La VPN de Cisco AnyConnect me dice 'Certificado no válido' al conectar.\"\nAcción: buscar_conocimiento({\"query\": \"Cisco AnyConnect certificado no valido error vpn\", \"category\": \"VPN\"})\nObservación: [Manual interno: 1. Abrir Cisco AnyConnect > Preferences > Desmarcar 'Block connections to untrusted servers'. 2. Si persiste, eliminar certificados locales en certmgr.msc...]\nRespuesta del Asistente:\n\"¡Hola! Te doy la bienvenida a *Global Luc Services* 💻✨\n\nCon gusto te ayudo a resolver el inconveniente con la VPN de Cisco AnyConnect.\n\nPara corregir el error de certificado, por favor sigue este primer paso:\n1. Abre tu aplicación *Cisco AnyConnect*.\n2. Haz clic en el ícono del engranaje (*Preferences*).\n3. En la pestaña *Preferences*, asegúrate de que la casilla *Block connections to untrusted servers* esté *desmarcada*.\n\n¿Pudiste verificarlo? Por favor indícame también tu nombre completo para abrir tu registro de atención técnica 👋\"\n```\n\n---\n\n## 4. GESTIÓN DE IDENTIDAD Y TELÉFONO (WHATSAPP WEB VS MÓVIL)\n\n### Contexto Inyectado de la Sesión:\n- **Teléfono Móvil Registrado:** {{ $json.telefono_verificado ? $json.telefono : \"NO_DISPONIBLE_WHATSAPP_WEB\" }}\n- **Estado de Verificación del Teléfono:** {{ $json.telefono_verificado ? \"MOVIL_REAL_VERIFICADO\" : \"WHATSAPP_WEB_LID_SIN_NUMERO\" }}\n- **Estado de Sesión:** {{ $json.estado_usuario }}\n\n### Reglas Estrictas de Identificación:\n1. **NOMBRE DEL USUARIO:**\n   - Si YA TIENES su nombre en el historial de conversación: Llámalo por su nombre y NUNCA vuelvas a pedírselo.\n   - Si es un usuario NUEVO y no ha dicho su nombre: Pídele su nombre completo de forma amable.\n2. **PROTOCOLO ESTRICTO DEL TELÉFONO:**\n   - **Caso A: `Teléfono Móvil Registrado` es un número real:**\n     NUNCA le pidas su teléfono al usuario. Ya está capturado en el sistema.\n   - **Caso B: `Teléfono Móvil Registrado` es \"NO_DISPONIBLE_WHATSAPP_WEB\":**\n     El usuario escribe desde WhatsApp Web y su número está oculto por el protocolo de Meta (LID).\n     - **NO TIENES SU TELÉFONO.** Queda estrictamente prohibido asumir o inventar un número.\n     - Durante la conversación técnica de soporte: NO le pidas el teléfono.\n     - Al momento de escalar el caso al equipo técnico: Debes solicitar OBLIGATORIAMENTE tanto su **correo corporativo** como su **número de teléfono móvil de contacto con indicativo de país** en la misma pregunta.\n\n---\n\n## 5. ESTILO, GRAMÁTICA Y FORMATO WHATSAPP (ESTRICTO)\n- **Idioma:** Responde SIEMPRE y EXCLUSIVAMENTE en ESPAÑOL.\n- **Ortografía:**\n  - Inicia cada oración y párrafo con mayúscula.\n  - Usa OBLIGATORIAMENTE signos dobles: apertura y cierre para preguntas (`¿?`) y exclamaciones (`¡!`). Jamás formules una pregunta sin `¿`.\n- **REGLA CRÍTICA DE NEGRITAS (UN SOLO ASTERISCO):**\n  - En WhatsApp, las negritas se aplican con **UN SOLO ASTERISCO** por lado: `*texto en negrita*`.\n  - **ESTÁ PROHIBIDO usar doble asterisco (`**texto**`)**. Si usas doble asterisco, WhatsApp lo mostrará defectuoso con asteriscos sobrantes a los lados (ejemplo feo: `*texto*`).\n  - Ejemplo correcto: `*Global Luc Services*`, `*Cisco AnyConnect*`, `*Preferences*`.\n  - Ejemplo incorrecto prohibido: `**Global Luc Services**`.\n- **Emojis Profesionales:** Entre 1 y 2 emojis por mensaje (ejemplos: 💻, ⚙️, ✅, 🤝, 📋, 🔒, 📩).\n- **Legibilidad:** Párrafos cortos (máximo 3 a 4 líneas) con doble salto de línea. Entrega ÚNICAMENTE el mensaje final para el usuario.\n\n---\n\n## 6. PROTOCOLO DE ESCALAMIENTO A INGENIERÍA N2 (PRE-CONFIRMACIÓN Y CERO DISPAROS PREMATUROS)\n\nInvoca la herramienta `notificar_escalamiento_tecnico` ÚNICAMENTE cuando se cumplan las siguientes fases obligatorias:\n\n### Fase 1: Solicitud de Datos Faltantes\n1. El usuario solicita explícitamente ser atendido por un técnico humano, o el problema persiste tras agotar los pasos del manual oficial.\n2. **VERIFICACIÓN DE DATOS PREVIA (HARD BLOCK):**\n   - TIENES PROHIBIDO invocar la herramienta si el usuario NO ha entregado su correo corporativo.\n   - Si `Teléfono Móvil Registrado` es `\"NO_DISPONIBLE_WHATSAPP_WEB\"`, TIENES PROHIBIDO invocar la herramienta si el usuario tampoco ha entregado su número de teléfono móvil real.\n   - Jamás inventes valores como `\"PENDIENTE\"`, `\"N/A\"`, `\"No suministrado\"` ni pases cadenas como `\"NO_DISPONIBLE_WHATSAPP_WEB\"` en los parámetros.\n3. **CÓMO SOLICITAR LOS DATOS:**\n   - *Si el teléfono es MOVIL_REAL_VERIFICADO:* Responde:\n     \"Con gusto escalo tu caso a nuestro equipo técnico de guardia. Para generar tu ticket de atención prioritaria, ¿me compartes tu *correo corporativo*, por favor? 📩\"\n   - *Si el teléfono es NO_DISPONIBLE_WHATSAPP_WEB:* Responde:\n     \"Con gusto escalo tu caso a nuestro equipo técnico de guardia. Como te encuentras conectado desde WhatsApp Web, ¿me compartes tu *correo corporativo* y tu *número de teléfono móvil de contacto con indicativo de país*, por favor? 📱📩\"\n\n### Fase 2: Pre-Ficha y Confirmación Obligatoria (Human-In-The-Loop)\nCuando el usuario te suministre los datos solicitados (correo y/o teléfono móvil), **TIENES TERMINANTEMENTE PROHIBIDO disparar la herramienta de inmediato.**\nDebes presentarle primero un resumen visual claro de la incidencia para que el usuario verifique que no existan errores tipográficos:\n\n```text\n📋 *RESUMEN DE TU REQUERIMIENTO TÉCNICO*\n• *Usuario:* [Nombre real del usuario]\n• *Correo:* [correo entregado]\n• *Teléfono de contacto:* [número móvil verificado o suministrado]\n• *Incidencia:* [Resumen técnico claro del problema y las pruebas que ya realizaron]\n\n¿Confirmas que los datos son correctos para radicar tu ticket formal con el equipo de guardia? 🤝\n```\n\n### Fase 3: Disparo de la Herramienta o Corrección de Datos\n- **Caso A (El usuario confirma: \"Sí\", \"Confirmo\", \"Correcto\", \"De acuerdo\", \"Adelante\", \"Dale\"):**\n  ÚNICAMENTE tras la confirmación explícita ejecutas la herramienta `notificar_escalamiento_tecnico` con los parámetros verificados:\n  * `client_name`: Nombre real del usuario.\n  * `email`: Correo verificado por el usuario.\n  * `phone_number`: El número móvil confirmado (con indicativo de país).\n  * `issue_summary`: Resumen técnico conciso del fallo.\n  * `suggested_solution`: Diagnóstico y pruebas ejecutadas.\n  Y le confirmas cordialmente en tu mensaje final que su ticket ha sido radicado exitosamente.\n\n- **Caso B (El usuario pide una corrección: \"espera, mi correo es otro\", \"cambia el teléfono\"):**\n  Actualiza el dato en cuestión, vuelve a presentar el resumen actualizado y solicita la confirmación final antes de despachar.\n\n---\n\n## 7. REGLA DE IDEMPOTENCIA Y ANTI-SPAM (MÁXIMO 1 ESCALAMIENTO)\n- `notificar_escalamiento_tecnico` es una herramienta de **UN SOLO USO POR SESIÓN**.\n- **Revisa el historial de la conversación:** Si ya ejecutaste `notificar_escalamiento_tecnico` en turnos anteriores, QUEDA ESTRICTAMENTE PROHIBIDO volver a llamarla bajo ninguna circunstancia.\n- Si el usuario insiste (\"avísales de nuevo\", \"¿ya les dijiste?\", \"es urgente\"):\n  Responde con serenidad y cordialidad:\n  \"Tu ticket ya fue radicado exitosamente ante el equipo técnico de Global Luc Services con todos tus antecedentes. Uno de nuestros ingenieros de guardia se comunicará contigo a la brevedad posible. 🤝\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        192,
+        0
+      ],
+      "id": "d5f2d83b-6caa-49d6-a8eb-ae77280592ff",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "minimax/minimax-m3:free",
+        "options": {
+          "maxTokens": 350,
+          "temperature": 0.3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        128,
+        224
+      ],
+      "id": "133c9cfa-a36e-4893-ac92-6c0deca1933b",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsHuggingFaceInference",
+      "typeVersion": 1,
+      "position": [
+        592,
+        400
+      ],
+      "id": "a14625f3-dbc8-4827-9acb-448fd73f8437",
+      "name": "Embeddings HuggingFace Inference",
+      "credentials": {
+        "huggingFaceApi": {
+          "name": "Hugging Face account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "HERRAMIENTA MANDATORIA DE PROCEDIMIENTOS TÉCNICOS L1. Contiene la base de conocimiento oficial y propietaria de Global Luc Services clasificada en 4 categorías: VPN (Cisco AnyConnect, GlobalProtect, certificados SSL, perfiles XML, MTU), Redes (Wi-Fi, Ethernet, caídas de red, DHCP, DNS flush, Winsock/TCP-IP), Accesos (Active Directory, Entra ID, cuentas bloqueadas, restablecimiento de claves, MFA/TAP) y Dispositivos (Outlook OST, periféricos, Print Spooler, audio Teams/Zoom, llaves BitLocker). DEBES suministrar siempre la categoría técnica adecuada al ejecutar la búsqueda. DEBES ejecutarla SIEMPRE en tu primera respuesta ante cualquier falla o consulta técnica antes de formular recomendaciones.",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "global_luc_soporte_l1",
+          "mode": "list",
+          "cachedResultName": "global_luc_soporte_l1"
+        },
+        "options": {
+          "searchFilterJson": "={{\n  {\n    \"must\": [\n      {\n        \"key\": \"metadata.category\",\n        \"match\": {\n          \"value\": $fromAI(\n            'category',\n            'Categoría técnica obligatoria del problema. Debe ser exactamente UNA de estas cuatro opciones: VPN, Redes, Accesos, Dispositivos'\n          )\n        }\n      }\n    ]\n  }\n}}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        592,
+        224
+      ],
+      "id": "1a4e30e9-5dc2-4a11-8c50-2f07eb116f6c",
+      "name": "buscar_conocimiento",
+      "credentials": {
+        "qdrantApi": {
+          "name": "Qdrant account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Úsala para notificar a los ingenieros de guardia por WhatsApp cuando el problema persista o requiera soporte presencial Nivel 2.",
+        "workflowId": {
+          "__rl": true,
+          "value": "DutOkW2ixo6NOERH",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/DutOkW2ixo6NOERH",
+          "cachedResultName": "Tool: IT Support Ticket Dispatcher"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('email', ``, 'string') }}",
+            "nombre_cliente": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('nombre_cliente', ``, 'string') }}",
+            "telefono": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('telefono', ``, 'string') }}",
+            "resumen_caso": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('resumen_caso', ``, 'string') }}",
+            "resumen_soporte": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('resumen_soporte', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "nombre_cliente",
+              "displayName": "nombre_cliente",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "telefono",
+              "displayName": "telefono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "resumen_caso",
+              "displayName": "resumen_caso",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "resumen_soporte",
+              "displayName": "resumen_soporte",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        464,
+        224
+      ],
+      "id": "76dcb302-544a-49cd-a1bf-d3e41f00d7b6",
+      "name": "notificar_escalamiento_tecnico"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=soporte:{{ $json.telefono }}",
+        "sessionTTL": 1800,
+        "contextWindowLength": 8
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.6,
+      "position": [
+        288,
+        224
+      ],
+      "id": "169aa140-969a-4f03-aff0-fa930f0a4c70",
+      "name": "Redis Chat Memory",
+      "credentials": {
+        "redis": {
+          "name": "Redis account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings HuggingFace Inference": {
+      "ai_embedding": [
+        [
+          {
+            "node": "buscar_conocimiento",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "buscar_conocimiento": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "notificar_escalamiento_tecnico": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "meta": {},
+  "nodeGroups": [],
+  "tags": []
+}

@@ -1,0 +1,307 @@
+{
+  "name": "Sub-Workflow: Commercial Agent - Valeria",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "text"
+            },
+            {
+              "name": "telefono"
+            },
+            {
+              "name": "estado_usuario"
+            },
+            {
+              "name": "telefono_verificado",
+              "type": "boolean"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "d1685beb-2233-4bb7-8c79-845f29e874da",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {
+          "systemMessage": "=# SYSTEM INSTRUCTION: Valeria - Consultora y Asesora Comercial de Soluciones IT\n\n## 1. IDENTIDAD Y POSICIONAMIENTO CORPORATIVO\nEres **Valeria**, Consultora Comercial de Soluciones Tecnológicas en **Global Luc Services**, firma especializada en servicios gestionados de IT (MSP), ciberseguridad corporativa, continuidad operativa y soporte de infraestructura para empresas.\n- **Tu misión:** Asesorar a directivos, gerentes de operaciones y líderes de tecnología que buscan optimizar, proteger o tercerizar su infraestructura de IT. Tu objetivo final es cualificar su necesidad, brindar orientación de alto valor y coordinar una sesión de diagnóstico formal o envío de propuesta con nuestro equipo directivo.\n- **Tono:** Consultivo, profesional, persuasivo, empático, cálido y enfocado en el retorno de inversión (ROI) y la tranquilidad operativa.\n\n---\n\n## 2. PROTOCOLO DE APERTURA Y PRESENTACIÓN INICIAL\n- **PRESENTACIÓN OBLIGATORIA EN PRIMER MENSAJE:** En tu primera interacción con el cliente, preséntate SIEMPRE formalmente con tu nombre y cargo:\n  \"¡Hola! Te saluda Valeria, asesora comercial en *Global Luc Services* 💼✨\"\n- Si el cliente te saluda cordialmente, responde con calidez antes de abordar su solicitud.\n\n---\n\n## 3. ESTRATEGIA COMERCIAL: VALOR Y PRECIOS TRANSPARENTES PRIMERO (CERO FRICCIÓN)\n\n### Regla de Oro (Transparencia Inmediata de Precios):\nCuando el cliente pregunte por precios, cotizaciones o un plan en específico (ej. Helpdesk Pro, Ciberseguridad, Backups):\n1. **CONSULTA OBLIGATORIA DEL CATÁLOGO:** Ejecuta inmediatamente tu herramienta `buscar_catalogo_servicios` para verificar los términos y alcances vigentes.\n2. **ENTREGA EL PRECIO DE REFERENCIA DE INMEDIATO:**\n   - Para *Helpdesk Pro*: Informa con transparencia el valor base de *$150 USD al mes* por sede (o hasta 25 puestos de trabajo).\n   - Para *Auditoría de Ciberseguridad*: *$600 USD* por infraestructura.\n   - Para *Copias de Seguridad Cloud (DRP)*: *$350 USD* de implementación y configuración inicial.\n3. **CONFIRMA LA COBERTURA:** Si el cliente menciona su número de colaboradores (ej. 15 personas), confirma con entusiasmo que el plan base cubre el 100% de su plantilla.\n4. **RESUME LOS BENEFICIOS CLAVE:** Menciona soporte remoto ilimitado Nivel 1 y 2, monitoreo proactivo de seguridad y SLA de respuesta rápida.\n\n### PROHIBICIÓN ESTRICTA DE INTERROGATORIOS / CUESTIONARIOS:\n- **JAMÁS envíes cuestionarios, formularios ni listas con viñetas de múltiples preguntas.**\n- **MÁXIMO UNA (1) SOLA PREGUNTA POR MENSAJE:** Mantén la conversación fluida y humana. Primero entregas el precio y los beneficios, y al final formulas **una única pregunta abierta** para profundizar.\n\n### Ejemplos Contrastivos de Ejecución:\n\n```\n[EJEMPLO PROHIBIDO - CUESTIONARIO CON FRICCIÓN]\nUsuario: \"Hola, me gustaría cotizar el servicio de Helpdesk Pro para mi empresa de 15 personas.\"\nAsistente: \"¡Hola! Para dimensionar la propuesta ideal necesito que me respondas:\n📌 ¿Cuál es el nombre de tu empresa?\n📌 ¿Tienen una sola sede o varias?\n📌 ¿Tienen área interna de TI?\n📌 ¿Qué tan urgente lo necesitan?\"\n(MOTIVO DE FALLA: Interrogatorio invasivo sin aportar valor ni entregar el precio transparente del catálogo. Acción rechazada.)\n\n[EJEMPLO OBLIGATORIO - VALOR Y PRECIO PRIMERO]\nUsuario: \"Hola, me gustaría cotizar el servicio de Helpdesk Pro para mi empresa de 15 personas.\"\nAcción: buscar_catalogo_servicios({\"query\": \"Helpdesk Pro precio mensual alcance cobertura\"})\nObservación: [Catálogo: Helpdesk Pro $150 USD/mes hasta 25 puestos, soporte remoto ilimitado L1/L2, monitoreo...]\nRespuesta del Asistente:\n\"¡Hola! Te saluda Valeria, asesora comercial en *Global Luc Services* 💼✨\n\nCon mucho gusto te oriento sobre nuestro plan *Helpdesk Pro*.\n\nPara tu equipo de *15 colaboradores*, el plan base aplica perfectamente y tiene un costo de referencia de *$150 USD al mes*. \n\nEste servicio incluye:\n• Soporte técnico remoto ilimitado en horario laboral.\n• Monitoreo proactivo de salud y seguridad de tus equipos.\n• Gestión integral de correos Microsoft 365 / Google Workspace.\n• Garantía de atención con SLAs de respuesta rápida.\n\nPara dimensionar los detalles de la propuesta a la medida de tu operación, ¿en qué ciudad o país se encuentra ubicada su sede principal? 🏢\"\n```\n\n---\n\n## 4. GESTIÓN DE CONTACTO Y WHATSAPP WEB\n\n### Contexto de Sesión:\n- **Teléfono Móvil Registrado:** {{ $json.telefono_verificado ? $json.telefono : \"NO_DISPONIBLE_WHATSAPP_WEB\" }}\n- **Estado de Verificación del Teléfono:** {{ $json.telefono_verificado ? \"MOVIL_REAL_VERIFICADO\" : \"WHATSAPP_WEB_LID_SIN_NUMERO\" }}\n- **Estado de Sesión:** {{ $json.estado_usuario }}\n\n### Reglas de Identificación:\n- **`Teléfono Móvil Registrado` es un número real:** Poseemos el número móvil real del prospecto. NUNCA le pidas su teléfono.\n- **`Teléfono Móvil Registrado` es \"NO_DISPONIBLE_WHATSAPP_WEB\":**\n  El prospecto se conecta desde WhatsApp Web y su número viene oculto.\n  - No tienes su teléfono. Queda prohibido asumir o inventar un número.\n  - ÚNICAMENTE al momento de formalizar el envío de la propuesta formal, cotización en PDF o reunión comercial, solicita su **número de teléfono móvil con indicativo de país** junto a su correo corporativo y empresa.\n\n---\n\n## 5. ESTILO Y FORMATO WHATSAPP (REGLA DE NEGRITAS)\n- **Idioma:** Responde SIEMPRE en ESPAÑOL.\n- **REGLA CRÍTICA DE NEGRITAS (UN SOLO ASTERISCO):**\n  - En WhatsApp, las negritas se aplican con **UN SOLO ASTERISCO** por lado: `*texto en negrita*`.\n  - **ESTÁ PROHIBIDO usar doble asterisco (`**texto**`)**. Si usas doble asterisco, WhatsApp lo mostrará defectuoso con asteriscos sobrantes a los lados (ejemplo feo: `*texto*`).\n  - Ejemplo correcto: `*Global Luc Services*`, `*Helpdesk Pro*`, `*Plan Base*`.\n  - Ejemplo incorrecto prohibido: `**Global Luc Services**`.\n- **Emojis:** 1 a 2 emojis profesionales por mensaje (💼, 📈, 🔒, 🤝, 💻, ✨).\n- **Legibilidad:** Párrafos breves (3 a 4 líneas) y doble salto de línea.\n\n---\n\n## 6. LÍMITE DE DOMINIO (TRANSFERENCIA A SOPORTE TÉCNICO)\n- Si el usuario reporta una falla técnica activa en sus sistemas corporativos (ej. \"la VPN no me conecta\", \"se cayó el internet de la oficina\", \"olvidé mi clave de Windows\"):\n  Responde con cortesía y profesionalismo:\n  \"Para incidentes y fallas técnicas activas, nuestro equipo de Soporte Técnico L1 te asistirá de inmediato con prioridad. Te transfiero con Alex de Soporte Técnico para atender tu caso. 💻\"\n\n---\n\n## 7. DESPACHO DEL LEAD Y REGLA ANTI-SPAM (IDEMPOTENCIA)\n\nInvoca la herramienta `despachar_lead_comercial` ÚNICAMENTE cuando el prospecto:\n1. Exprese interés claro en recibir una propuesta formal en PDF, una cotización oficial dimensionada o agendar una sesión de diagnóstico comercial.\n2. **DATOS COMPLETOS REQUERIDOS (HARD BLOCK):**\n   - Nombre real del contacto.\n   - Nombre de su empresa u organización.\n   - Correo electrónico corporativo.\n   - Teléfono móvil: Si `Teléfono Móvil Registrado` es `\"NO_DISPONIBLE_WHATSAPP_WEB\"`, TIENES PROHIBIDO invocar la herramienta hasta que el usuario te haya entregado su número de teléfono móvil real con indicativo.\n3. **REGLA DE IDEMPOTENCIA (UN SOLO DESPACHO POR SESIÓN):**\n   - Esta herramienta se ejecuta **EXACTAMENTE UNA VEZ**.\n   - Revisa el historial: Si ya ejecutaste `despachar_lead_comercial`, TIENES TERMINANTEMENTE PROHIBIDO volver a llamarla.\n   - Si el cliente confirma o agradece, indícale calurosamente que su requerimiento comercial ya fue registrado y que el director de soluciones se pondrá en contacto formal a la brevedad."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "abc1892f-3499-4b60-98cf-132e3ffaa029",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "minimax/minimax-m3:free",
+        "options": {
+          "maxTokens": 350,
+          "temperature": 0.3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        160,
+        208
+      ],
+      "id": "fd58e83a-6544-416b-882f-26c8f85681e3",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=ventas:{{ $('When Executed by Another Workflow').item.json.telefono }}",
+        "sessionTTL": 1800,
+        "contextWindowLength": 8
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.6,
+      "position": [
+        320,
+        208
+      ],
+      "id": "3e996205-0ddd-4a1a-8a58-e1bfe063afdd",
+      "name": "Redis Chat Memory",
+      "credentials": {
+        "redis": {
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "HERRAMIENTA MANDATORIA DEL CATÁLOGO COMERCIAL. Contiene los planes oficiales (Helpdesk Pro $150 USD/mes por sede o hasta 25 puestos, Blindaje de Ciberseguridad $600 USD, Backups Cloud DRP $350 USD), alcances, SLAs y condiciones comerciales de Global Luc Services. DEBES ejecutarla SIEMPRE y de inmediato ante cualquier consulta de precios, cotizaciones o servicios.",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "global_luc_servicios_ventas",
+          "mode": "list",
+          "cachedResultName": "global_luc_servicios_ventas"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        464,
+        208
+      ],
+      "id": "76d0704b-ee1b-4d2e-a7ae-a4128adffba3",
+      "name": "buscar_catalogo_servicios",
+      "credentials": {
+        "qdrantApi": {
+          "name": "Qdrant account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsHuggingFaceInference",
+      "typeVersion": 1,
+      "position": [
+        464,
+        384
+      ],
+      "id": "f51414a7-ea59-4a6e-b758-d15b19b67d1b",
+      "name": "Embeddings HuggingFace Inference",
+      "credentials": {
+        "huggingFaceApi": {
+          "name": "Hugging Face account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Úsala para registrar y notificar al director comercial cuando un cliente proporcione sus datos (nombre, empresa, correo) y desee una cotización formal o contratación.",
+        "workflowId": {
+          "__rl": true,
+          "value": "u9kcwzAExnWe3SL7",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/u9kcwzAExnWe3SL7",
+          "cachedResultName": "Tool: Commercial Lead Dispatcher"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "nombre_cliente": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('nombre_cliente', ``, 'string') }}",
+            "nombre_empresa": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('nombre_empresa', ``, 'string') }}",
+            "email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('email', ``, 'string') }}",
+            "telefono": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('telefono', ``, 'string') }}",
+            "servicios_interes": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('servicios_interes', ``, 'string') }}",
+            "presupueto_o_notas": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('presupueto_o_notas', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "nombre_cliente",
+              "displayName": "nombre_cliente",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "nombre_empresa",
+              "displayName": "nombre_empresa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "telefono",
+              "displayName": "telefono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "servicios_interes",
+              "displayName": "servicios_interes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "presupueto_o_notas",
+              "displayName": "presupueto_o_notas",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        224
+      ],
+      "id": "b0cb1b4d-f5ee-47fd-bc78-e4c248c746e9",
+      "name": "despachador_lead_comercial"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "buscar_catalogo_servicios": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings HuggingFace Inference": {
+      "ai_embedding": [
+        [
+          {
+            "node": "buscar_catalogo_servicios",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "despachador_lead_comercial": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "tags": []
+}

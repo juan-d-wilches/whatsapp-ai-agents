@@ -1,0 +1,117 @@
+{
+  "name": "Tool: IT Support Ticket Dispatcher",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "nombre_cliente"
+            },
+            {
+              "name": "email"
+            },
+            {
+              "name": "telefono"
+            },
+            {
+              "name": "resumen_caso"
+            },
+            {
+              "name": "resumen_soporte"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "97ebbf7c-1a44-42ea-b67b-c1f01d2f92c7",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      result: `Alerta de caso de ${$json.client_name || 'user'} enviada correctamente a un tecnico via WhatsApp.`\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "c5492ce0-fb1f-4496-88cd-6c6d7d9d7b63",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://evolution-api:8080/message/sendText/alex_it_assistant",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $env.ALERT_PHONE }}"
+            },
+            {
+              "name": "text",
+              "value": "=🚨 *NUEVO CASO ESCALADO / LEAD - GLOBAL LUC SERVICES* 🚨\n━━━━━━━━━━━━━━━━━━━━━━━\n👤 *Cliente:* {{ $json.nombre_cliente }}\n📧 *Email:* {{ $json.email }}\n📞 *Teléfono:* {{ $json.telefono }}\n\n📋 *Problema / Necesidad:*\n{{ $json.resumen_caso }}\n\n💡 *Recomendaciones generadas por el agente:*\n{{ $json.resumen_soporte }}\n━━━━━━━━━━━━━━━━━━━━━━━\n⏰ *Fecha:* {{ $now.toFormat('dd/MM/yyyy hh:mm a') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "c50c6a74-8f36-4b8f-9316-251c8a7e0fe7",
+      "name": "HTTP Request: Evolution API",
+      "credentials": {
+        "httpHeaderAuth": {
+          "name": "Evolution API Header Auth"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request: Evolution API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request: Evolution API": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "meta": {},
+  "nodeGroups": [],
+  "tags": []
+}

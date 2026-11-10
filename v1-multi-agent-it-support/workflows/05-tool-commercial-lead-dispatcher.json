@@ -1,0 +1,120 @@
+{
+  "name": "Tool: Commercial Lead Dispatcher",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "nombre_cliente"
+            },
+            {
+              "name": "nombre_empresa"
+            },
+            {
+              "name": "email"
+            },
+            {
+              "name": "telefono"
+            },
+            {
+              "name": "servicios_interes"
+            },
+            {
+              "name": "presupueto_o_notas"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "0cc24e22-234f-47da-9e05-039d45e16577",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      result: `Prospecto calificado para ${$json.client_name || 'el cliente'} de la empresa ${$json.company_name || 'su organización'} registrado y notificado exitosamente al director comercial por WhatsApp.`\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "e58dface-ec18-4cbd-9f78-f0f7e0a1c4c0",
+      "name": "Code: Confirmar a la IA"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://evolution-api:8080/message/sendText/alex_it_assistant",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $env.ALERT_PHONE }}"
+            },
+            {
+              "name": "=text",
+              "value": "=💼 *NUEVA OPORTUNIDAD COMERCIAL - GLOBAL LUC SERVICES* 💼\n━━━━━━━━━━━━━━━━━━━━━━━\n👤 *Contacto:* {{ $json.nombre_cliente }}\n🏢 *Empresa:* {{ $json.nombre_empresa || 'No especificada' }}\n📧 *Correo Corporativo:* {{ $json.email }}\n📞 *Teléfono:* {{ $json.telefono }}\n🎯 *Servicio de Interés:* {{ $json.servicios_interes }}\n📝 *Notas de Calificación (BANT):* {{ $json.presupueto_o_notas }}\n━━━━━━━━━━━━━━━━━━━━━━━ \n⏰ *Fecha y Hora:* {{ $now.setZone('America/Bogota').toFormat('dd/MM/yyyy hh:mm a') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "aa14e51d-8956-4c96-a705-c2c9237e22fa",
+      "name": "HTTP Request: Enviar Alerta Comercial WhatsApp",
+      "credentials": {
+        "httpHeaderAuth": {
+          "name": "Evolution API Header Auth"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request: Enviar Alerta Comercial WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request: Enviar Alerta Comercial WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Code: Confirmar a la IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "meta": {},
+  "nodeGroups": [],
+  "tags": []
+}

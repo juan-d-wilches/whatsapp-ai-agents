@@ -1,0 +1,917 @@
+{
+  "name": "Router: WhatsApp Multi-Agent Inbound",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-inbound",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1808,
+        -288
+      ],
+      "id": "4617ca40-deb3-4d5a-9f9e-3ab769f0f3b5",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6488c26e-69f4-4add-b2dc-be8f090235c6",
+              "name": "remote_jid",
+              "value": "={{ $json.body.data.key.remoteJid }}",
+              "type": "string"
+            },
+            {
+              "id": "1ecd57d3-ac5c-4561-ba7b-186e77b085ad",
+              "name": "=telefono",
+              "value": "={{ $json.body.data.key.remoteJid.split('@')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "15d3539a-828c-4731-bf93-e0573cdf4e75",
+              "name": "text",
+              "value": "={{ $json.body.data.message?.conversation }}",
+              "type": "string"
+            },
+            {
+              "id": "ca9c0e11-cf11-4c19-aeb1-dc3e8237d963",
+              "name": "telefono_verificado",
+              "value": "={{ !$json.body.data.key.remoteJid.includes('@lid') && ($json.body.data.key.remoteJid.split('@')[0].length <= 13) }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -1376,
+        -304
+      ],
+      "id": "f259637e-7cf0-4732-95d5-f05bc1ee16fa",
+      "name": "Extract Data"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "695e0282-097b-4645-856e-de67c75765f5",
+              "leftValue": "={{ $json.body.data.key.fromMe }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1600,
+        -288
+      ],
+      "id": "7106c0ed-19c5-4cee-bded-0c0448ad03a5",
+      "name": "Is User Reply"
+    },
+    {
+      "parameters": {
+        "operation": "incr",
+        "key": "=ratelimit:{{ $json.telefono }}:{{ $now.setZone('America/Bogota').toFormat('yyyyMMddHHmm') }}",
+        "expire": true
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -1808,
+        -80
+      ],
+      "id": "1232e51a-a2fa-416b-9bf8-33e9687b0470",
+      "name": "Redis: Rate Limiting",
+      "credentials": {
+        "redis": {
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "user_seen",
+        "key": "=user_seen:{{ $('Extract Data').item.json.telefono }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -1376,
+        -96
+      ],
+      "id": "d6da975c-2a43-4b83-ae66-f691d9bc2f34",
+      "name": "Redis: Get user_seen",
+      "credentials": {
+        "redis": {
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obtenemos el valor retornado por el nodo Redis (Get user_seen)\nconst userSeen = $json.userSeen || $json.value;\n\n// Si user_seen no existe (null o undefined), es un usuario nuevo\n// Si user_seen existe, significa que ya nos había hablado hoy pero su memoria de 30 min expiró\nconst estado_usuario = (!userSeen) ? \"NUEVO\" : \"EXPIRADO\";\n\nreturn [{\n  json: {\n    ...$('Extract Data').item.json,\n    estado_usuario: estado_usuario\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1808,
+        128
+      ],
+      "id": "a1f2edb7-f512-4f75-8b02-79ca371a3ded",
+      "name": "Code: Calcular Estado"
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=user_seen:{{ $('Extract Data').item.json.telefono }}",
+        "value": "1",
+        "expire": true,
+        "ttl": "={{ Math.floor(($now.setZone('America/Bogota').endOf('day').toMillis() - $now.setZone('America/Bogota').toMillis()) / 1000) }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -1600,
+        128
+      ],
+      "id": "ebcf167a-df09-4b14-adf5-90abfe85be80",
+      "name": "Redis: Set user_seen",
+      "credentials": {
+        "redis": {
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a204fa52-51f0-4faf-bad4-1fb33fa92ce4",
+              "leftValue": "={{ Object.values($json)[0] }}",
+              "rightValue": "={{ 8 }}",
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1600,
+        -80
+      ],
+      "id": "43079604-3e1a-41e5-9e14-5cea5ef20c65",
+      "name": "Less than 9 msg received"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://evolution-api:8080/message/sendText/alex_it_assistant",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('Extract Data').item.json.remote_jid }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.output?.replace(/\\*\\*(.*?)\\*\\*/g, '*$1*') }}"
+            },
+            {
+              "name": "delay",
+              "value": "={{ Math.min(Math.max(($json.output?.length || 50) * 20, 2500), 5000) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -288,
+        336
+      ],
+      "id": "89aaba6b-1616-454f-9f11-70702915d24e",
+      "name": "HTTP Request: Send WhatsApp Reply",
+      "credentials": {
+        "httpHeaderAuth": {
+          "name": "Evolution API Header Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "session_mode",
+        "key": "=session_mode:{{ $('Extract Data').item.json.telefono }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -1376,
+        128
+      ],
+      "id": "58c63d42-b92d-49f5-97dd-32e37703c9e3",
+      "name": "Redis: Get session_mode",
+      "credentials": {
+        "redis": {
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const currentSession = $json.session_mode;\n\nreturn [{\n  json: {\n    ...$('Extract Data').item.json,\n    session_mode: currentSession || null,\n    has_active_session: Boolean(currentSession && currentSession !== '')\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1808,
+        336
+      ],
+      "id": "ec86e690-ea60-49de-877d-8589c3c5ec03",
+      "name": "Code: Evaluar Estado Sesión"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "62e1fc8e-44d7-4b0c-8192-fd895cdb49f4",
+              "leftValue": "={{ $json.has_active_session }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1600,
+        336
+      ],
+      "id": "ca541983-8e17-4c7c-8e36-31525fdfdd1d",
+      "name": "If: ¿Tiene Sesión Activa?"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Clasifica el siguiente mensaje entrante de un usuario en exactamente UNA de estas 3 palabras en minúsculas: \"soporte\", \"ventas\" o \"menu\".\n\nReglas estrictas de clasificación:\n- \"soporte\": Si reporta problemas técnicos, incidentes, caídas de red, fallas de VPN, reseteo de contraseñas, lentitud, impresoras, sistemas o software dañado.\n- \"ventas\": Si pregunta por cotizaciones, precios, planes comerciales (Helpdesk Pro, Blindaje Ciberseguridad, Backup Cloud), contratación, SLAs o cómo adquirir servicios.\n- \"menu\": Si el mensaje es únicamente un saludo de cortesía genérico (ej. \"hola\", \"buenos días\", \"buenas tardes\", \"¿hay alguien ahí?\") sin especificar ningún problema ni servicio.\n\nMensaje del usuario:\n{{ $('Extract Data').item.json.text }}\n\nResponde ÚNICAMENTE la palabra en minúsculas (soporte, ventas o menu), sin puntuación, sin explicaciones ni saltos de línea adicionales.",
+        "messages": {
+          "messageValues": []
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -1664,
+        592
+      ],
+      "id": "26802e57-ce0b-4025-ab33-32367f6e25ca",
+      "name": "LLM: Clasificador de Intención"
+    },
+    {
+      "parameters": {
+        "model": "minimax/minimax-m2.7:free",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -1664,
+        752
+      ],
+      "id": "084f18db-980e-4bf7-956a-ebac9fe5da40",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawOutput = ($json.text || '').toLowerCase().trim();\nlet detectedIntent = 'menu';\n\nif (rawOutput.includes('soporte') || rawOutput === '1') {\n  detectedIntent = 'soporte';\n} else if (rawOutput.includes('ventas') || rawOutput === '2') {\n  detectedIntent = 'ventas';\n}\n\nreturn [{\n  json: {\n    ...$('Extract Data').item.json,\n    session_mode: detectedIntent\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1360,
+        592
+      ],
+      "id": "b75c64ac-8d48-4a8e-9887-1092c788f38d",
+      "name": "Code: Limpiar Intención"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.session_mode }}",
+                    "rightValue": "soporte",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "692b4881-b353-48b6-ae9c-75b256e3fc04"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "4c9fcfdd-ea5a-4c7c-b642-bf138cafccf1",
+                    "leftValue": "={{ $json.session_mode }}",
+                    "rightValue": "ventas",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3d88de9c-6a67-4dc5-a438-a73c8b6642cc",
+                    "leftValue": "={{ $json.session_mode }}",
+                    "rightValue": "menu",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -1200,
+        304
+      ],
+      "id": "02cedb70-37f3-417b-bfcd-3076247cfdba",
+      "name": "Switch: Enrutar por Intención"
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=session_mode:{{ $('Extract Data').item.json.telefono }}",
+        "value": "soporte",
+        "expire": true,
+        "ttl": 1800
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -1008,
+        144
+      ],
+      "id": "4d5d3559-980d-4864-99ed-93c7a39b280e",
+      "name": "Redis: Guardar Sesión Soporte",
+      "credentials": {
+        "redis": {
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=session_mode:{{ $('Extract Data').item.json.telefono }}",
+        "value": "ventas",
+        "expire": true,
+        "ttl": 1800
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -1008,
+        320
+      ],
+      "id": "8bcda1a9-e499-4a62-b723-c0255c593ab8",
+      "name": "Redis: Guardar Sesión Ventas",
+      "credentials": {
+        "redis": {
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "8fOA56VtcbjS7V4W",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/8fOA56VtcbjS7V4W",
+          "cachedResultName": "Sub-Workflow: Commercial Agent - Valeria"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "text": "={{ $('Extract Data').item.json.text }}",
+            "telefono": "={{ $('Extract Data').item.json.telefono }}",
+            "estado_usuario": "={{ $('Code: Evaluar Estado Sesión').item.json.estado_usuario || 'ACTIVO' }}",
+            "telefono_verificado": "={{ $('Extract Data').item.json.telefono_verificado }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "text",
+              "displayName": "text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "telefono",
+              "displayName": "telefono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "estado_usuario",
+              "displayName": "estado_usuario",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "telefono_verificado",
+              "displayName": "telefono_verificado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -736,
+        320
+      ],
+      "id": "c9942121-16dc-4558-8b85-97648efc8db0",
+      "name": "Execute Workflow: Agente Valeria"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "57cc75e9-cb22-48c7-b710-6031f1ad2a80",
+              "name": "output",
+              "value": "=¡Hola! Te doy la bienvenida a *Global Luc Services* 💻✨\n\n¿Cómo podemos apoyarte hoy? Por favor indícanos brevemente tu necesidad o elige una opción:\n\n1️⃣ *Soporte Técnico IT:* Reporte de incidencias con VPN, redes, contraseñas, equipos o aplicaciones corporativas.\n2️⃣ *Planes y Servicios:* Cotizaciones de Helpdesk Pro, auditorías de Ciberseguridad y copias de seguridad Cloud.\n\n¿En qué área te gustaría que te orientemos?",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -1008,
+        528
+      ],
+      "id": "6f27dda5-0eac-4d71-a0a2-7bc037bfd4eb",
+      "name": "Edit Fields: Mensaje Menú"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "7BWLycxNIiIk8sr4",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/7BWLycxNIiIk8sr4",
+          "cachedResultName": "Sub-Workflow: IT Support - Alex"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "text": "={{ $('Extract Data').item.json.text }}",
+            "telefono": "={{ $('Extract Data').item.json.telefono }}",
+            "estado_usuario": "={{ $('Code: Evaluar Estado Sesión').item.json.estado_usuario || 'ACTIVO' }}",
+            "telefono_verificado": "={{ $('Extract Data').item.json.telefono_verificado }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "text",
+              "displayName": "text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "telefono",
+              "displayName": "telefono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "estado_usuario",
+              "displayName": "estado_usuario",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "telefono_verificado",
+              "displayName": "telefono_verificado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -736,
+        144
+      ],
+      "id": "6a94ee38-c1a0-45c0-b185-424cc62cb132",
+      "name": "Execute Workflow: Agente Alex"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Is User Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Data": {
+      "main": [
+        [
+          {
+            "node": "Redis: Rate Limiting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is User Reply": {
+      "main": [
+        [
+          {
+            "node": "Extract Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Redis: Rate Limiting": {
+      "main": [
+        [
+          {
+            "node": "Less than 9 msg received",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis: Get user_seen": {
+      "main": [
+        [
+          {
+            "node": "Code: Calcular Estado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Calcular Estado": {
+      "main": [
+        [
+          {
+            "node": "Redis: Set user_seen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis: Set user_seen": {
+      "main": [
+        [
+          {
+            "node": "Redis: Get session_mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Less than 9 msg received": {
+      "main": [
+        [
+          {
+            "node": "Redis: Get user_seen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis: Get session_mode": {
+      "main": [
+        [
+          {
+            "node": "Code: Evaluar Estado Sesión",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Evaluar Estado Sesión": {
+      "main": [
+        [
+          {
+            "node": "If: ¿Tiene Sesión Activa?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: ¿Tiene Sesión Activa?": {
+      "main": [
+        [
+          {
+            "node": "Switch: Enrutar por Intención",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "LLM: Clasificador de Intención",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "LLM: Clasificador de Intención",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM: Clasificador de Intención": {
+      "main": [
+        [
+          {
+            "node": "Code: Limpiar Intención",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Limpiar Intención": {
+      "main": [
+        [
+          {
+            "node": "Switch: Enrutar por Intención",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Enrutar por Intención": {
+      "main": [
+        [
+          {
+            "node": "Redis: Guardar Sesión Soporte",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redis: Guardar Sesión Ventas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields: Mensaje Menú",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis: Guardar Sesión Soporte": {
+      "main": [
+        [
+          {
+            "node": "Execute Workflow: Agente Alex",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis: Guardar Sesión Ventas": {
+      "main": [
+        [
+          {
+            "node": "Execute Workflow: Agente Valeria",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow: Agente Valeria": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request: Send WhatsApp Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields: Mensaje Menú": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request: Send WhatsApp Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow: Agente Alex": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request: Send WhatsApp Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "tags": []
+}
